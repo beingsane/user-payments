@@ -6,6 +6,7 @@ use Yii;
 use app\models\Transfer;
 use app\models\TransferState;
 use app\models\TransferSearch;
+use app\models\TransferForm;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -75,14 +76,14 @@ class TransferController extends Controller
      */
     public function actionCreate()
     {
+        $form = new TransferForm();
         $model = new Transfer();
-        $model->state_id = TransferState::AWAITING;
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($form->load(Yii::$app->request->post()) && $form->loadModel($model) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('create', [
-                'model' => $model,
+                'model' => $form,
             ]);
         }
     }

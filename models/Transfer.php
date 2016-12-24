@@ -41,7 +41,6 @@ class Transfer extends \yii\db\ActiveRecord
             [['type_id', 'from_user_id', 'to_user_id', 'amount', 'state_id'], 'required'],
             [['type_id', 'from_user_id', 'to_user_id', 'state_id'], 'integer'],
             [['amount'], 'number'],
-            [['created_at'], 'safe'],
             [['from_user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['from_user_id' => 'id']],
             [['to_user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['to_user_id' => 'id']],
             [['state_id'], 'exist', 'skipOnError' => true, 'targetClass' => TransferState::className(), 'targetAttribute' => ['state_id' => 'id']],
@@ -124,6 +123,7 @@ class Transfer extends \yii\db\ActiveRecord
 
     /**
      * Returns true if this transfer is in awating state
+     * @return bool
      */
     public function isAwaiting()
     {
@@ -132,6 +132,7 @@ class Transfer extends \yii\db\ActiveRecord
 
     /**
      * Returns true if this transfer is of send type
+     * @return bool
      */
     public function isSendType()
     {
@@ -140,6 +141,7 @@ class Transfer extends \yii\db\ActiveRecord
 
     /**
      * Returns true if this transfer is of send type
+     * @return bool
      */
     public function isReceiveType()
     {
@@ -148,6 +150,7 @@ class Transfer extends \yii\db\ActiveRecord
 
     /**
      * Returns true if the user is allowed to control this transfer
+     * @return bool
      */
     public function isControlAllowed()
     {
@@ -207,18 +210,22 @@ class Transfer extends \yii\db\ActiveRecord
             $creditPayment->amount = $amount;
             $creditPayment->save();
 
+            // perform addition via database because in application decimal values will be converted to float
+
             $this->db->createCommand()->update(
                 $fromAccount->tableName(),
                 ['amount' => new DbExpression('amount - :amount')],
                 ['id' => $fromAccount->id],
                 [':amount' => $amount]
             )->execute();
+
             $this->db->createCommand()->update(
                 $toAccount->tableName(),
                 ['amount' => new DbExpression('amount + :amount')],
                 ['id' => $toAccount->id],
                 [':amount' => $amount]
             )->execute();
+
             $fromAccount->refresh();
             $toAccount->refresh();
 

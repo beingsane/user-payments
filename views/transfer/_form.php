@@ -22,9 +22,7 @@ use app\models\TransferType;
 
     <?= $render->selectField('type_id', TransferType::getList()) ?>
 
-    <?= $render->selectField('from_user_id', User::getList()) ?>
-
-    <?= $render->selectField('to_user_id', User::getList()) ?>
+    <?= $render->textField('username') ?>
 
     <?= $render->textField('amount', [], ['maxlength' => true]) ?>
 
