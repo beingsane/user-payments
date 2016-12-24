@@ -21,6 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             'id',
             'username',
+            'account.amount:decimal',
             'created_at:datetime',
 
             ['class' => 'yii\grid\ActionColumn', 'template' => '{view}'],

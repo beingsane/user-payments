@@ -19,6 +19,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'attributes' => [
             'id',
             'username',
+            'account.amount:decimal',
             'created_at:datetime',
         ],
     ]) ?>

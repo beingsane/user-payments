@@ -16,8 +16,6 @@ class LoginForm extends Model
     public $username;
     public $rememberMe = true;
 
-    private $_user = false;
-
 
     /**
      * @return array the validation rules.
@@ -38,35 +36,12 @@ class LoginForm extends Model
     public function login()
     {
         if ($this->validate()) {
-            $user = $this->getUser();
+            $user = User::ensureUserExists($this->username);
             if (!$user) {
-                $user = new User();
-                $user->username = $this->username;
-                $user->auth_key = 'test';
-                $user->password_hash = 'test';
-                $user->email = 'test';
-                $saved = $user->save();
-
-                if (!$saved) {
-                    throw new \yii\web\ServerErrorHttpException(Yii::t('app', 'Cannot create user'));
-                }
+                throw new \yii\web\ServerErrorHttpException(Yii::t('app', 'Cannot ensure user'));
             }
             return Yii::$app->user->login($user, $this->rememberMe ? 3600*24*30 : 0);
         }
         return false;
-    }
-
-    /**
-     * Finds user by [[username]]
-     *
-     * @return User|null
-     */
-    public function getUser()
-    {
-        if ($this->_user === false) {
-            $this->_user = User::findByUsername($this->username);
-        }
-
-        return $this->_user;
     }
 }

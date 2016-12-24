@@ -206,4 +206,58 @@ class User extends ActiveRecord implements IdentityInterface
         $list = ArrayHelper::map($models, 'id', 'name');
         return $list;
     }
+
+    /**
+     * Creates a new user
+     * @param array $data
+     */
+    public static function createUser($data)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+
+            $user = new User();
+            $user->username = $data['username'];
+            $user->auth_key = 'test';
+            $user->password_hash = 'test';
+            $user->email = $data['username'] . '@test.test';
+            $saved = $user->save();
+            if (!$saved) {
+                return null;
+            }
+
+            $account = new Account();
+            $account->user_id = $user->id;
+            $account->amount = 0;
+            $saved = $account->save();
+            if (!$saved) {
+                return null;
+            }
+
+        $transaction->commit();
+
+        return $user;
+    }
+
+    /**
+     * Tries to find a user,
+     * If user does not exists, creates a user and his account
+     * @param string $username
+     */
+    public static function ensureUserExists($username)
+    {
+        $user = self::findByUsername($username);
+        if (!$user) {
+            $user = self::createUser(['username' => $username]);
+        }
+
+        return $user;
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAccount()
+    {
+        return $this->hasOne(Account::className(), ['user_id' => 'id']);
+    }
 }
