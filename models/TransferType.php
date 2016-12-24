@@ -15,6 +15,10 @@ use yii\helpers\ArrayHelper;
  */
 class TransferType extends \yii\db\ActiveRecord
 {
+    /** Transfer type ids */
+    const SEND = 1;
+    const RECEIVE = 2;
+
     /**
      * @inheritdoc
      */

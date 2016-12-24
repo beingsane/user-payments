@@ -8,7 +8,7 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\TransferSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', 'Your Transfers');
+$this->title = Yii::t('app', 'Your transfers');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="transfer-index">
@@ -50,7 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'state.name',
             'created_at:datetime',
 
-            ['class' => 'yii\grid\ActionColumn'],
+            ['class' => 'yii\grid\ActionColumn', 'template' => '{view}'],
         ],
     ]); ?>
 

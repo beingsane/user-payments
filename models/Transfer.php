@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\helpers\ArrayHelper;
+use yii\db\Expression as DbExpression;
 
 /**
  * This is the model class for table "{{%transfer}}".
@@ -119,5 +120,124 @@ class Transfer extends \yii\db\ActiveRecord
         $models = self::find()->all();
         $list = ArrayHelper::map($models, 'id', 'name');
         return $list;
+    }
+
+    /**
+     * Returns true if this transfer is in awating state
+     */
+    public function isAwaiting()
+    {
+        return $this->state_id == TransferState::AWAITING;
+    }
+
+    /**
+     * Returns true if this transfer is of send type
+     */
+    public function isSendType()
+    {
+        return $this->type_id == TransferType::SEND;
+    }
+
+    /**
+     * Returns true if this transfer is of send type
+     */
+    public function isReceiveType()
+    {
+        return $this->type_id == TransferType::RECEIVE;
+    }
+
+    /**
+     * Returns true if the user is allowed to control this transfer
+     */
+    public function isControlAllowed()
+    {
+        return ($this->isAwaiting() && (
+               $this->isSendType() && $this->from_user_id == Yii::$app->user->id
+            || $this->isReceiveType() && $this->to_user_id == Yii::$app->user->id
+        ));
+    }
+
+    /**
+     * Accepts the transfer
+     */
+    public function accept()
+    {
+        if (!$this->isControlAllowed()) {
+            return;
+        }
+
+        if ($this->type_id == TransferType::SEND) {
+            $fromAccount = $this->fromUser->account;
+            $toAccount = $this->toUser->account;
+            $this->processTransfer($fromAccount, $toAccount, $this->amount);
+
+        } elseif ($this->type_id == TransferType::RECEIVE) {
+
+            $fromAccount = $this->toUser->account;
+            $toAccount = $this->fromUser->account;
+            $this->processTransfer($fromAccount, $toAccount, $this->amount);
+        }
+    }
+
+    /**
+     * Process the transfer
+     * All actions are performed in DB transaction
+     * @param Account $fromAccount
+     * @param Account $toAccount
+     * @param integer $amount
+     */
+    public function processTransfer($fromAccount, $toAccount, $amount)
+    {
+        $dbTransaction = $this->db->beginTransaction();
+
+            $transaction = new PaymentTransaction();
+            $transaction->save();
+
+            $debetPayment = new Payment();
+            $debetPayment->transaction_id = $transaction->id;
+            $debetPayment->account_id = $fromAccount->id;
+            $debetPayment->type_id = PaymentType::DEBET;
+            $debetPayment->amount = $amount;
+            $debetPayment->save();
+
+            $creditPayment = new Payment();
+            $creditPayment->transaction_id = $transaction->id;
+            $creditPayment->account_id = $toAccount->id;
+            $creditPayment->type_id = PaymentType::CREDIT;
+            $creditPayment->amount = $amount;
+            $creditPayment->save();
+
+            $this->db->createCommand()->update(
+                $fromAccount->tableName(),
+                ['amount' => new DbExpression('amount - :amount')],
+                ['id' => $fromAccount->id],
+                [':amount' => $amount]
+            )->execute();
+            $this->db->createCommand()->update(
+                $toAccount->tableName(),
+                ['amount' => new DbExpression('amount + :amount')],
+                ['id' => $toAccount->id],
+                [':amount' => $amount]
+            )->execute();
+            $fromAccount->refresh();
+            $toAccount->refresh();
+
+            $this->state_id = TransferState::ACCEPTED;
+            $this->save();
+
+        $dbTransaction->commit();
+    }
+
+    /**
+     * Declines the transfer
+     */
+    public function decline()
+    {
+        if (!$this->isControlAllowed()) {
+            return;
+        }
+
+        $this->state_id = TransferState::DECLINED;
+        $this->save();
     }
 }

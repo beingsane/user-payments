@@ -127,7 +127,7 @@ class TransferSearch extends Model
         if (Yii::$app->user->isGuest) {
             $query->andWhere('0 = 1');
         } else {
-            $query->andWhere(['from_user_id' => Yii::$app->user->id]);
+            $query->andWhere(['or', ['from_user_id' => Yii::$app->user->id], ['to_user_id' => Yii::$app->user->id]]);
         }
 
 

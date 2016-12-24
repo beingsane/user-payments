@@ -15,6 +15,11 @@ use yii\helpers\ArrayHelper;
  */
 class TransferState extends \yii\db\ActiveRecord
 {
+    /** Transfer state ids */
+    const AWAITING = 1;
+    const ACCEPTED = 2;
+    const DECLINED = 3;
+
     /**
      * @inheritdoc
      */

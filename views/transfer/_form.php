@@ -28,8 +28,6 @@ use app\models\TransferType;
 
     <?= $render->textField('amount', [], ['maxlength' => true]) ?>
 
-    <?= $render->selectField('state_id', TransferState::getList()) ?>
-
     <div class="form-group m-t-md">
         <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>

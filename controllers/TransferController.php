@@ -4,10 +4,12 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Transfer;
+use app\models\TransferState;
 use app\models\TransferSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 
 /**
  * TransferController implements the CRUD actions for Transfer model.
@@ -20,10 +22,20 @@ class TransferController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST'],
+                    'accept' => ['POST'],
+                    'decline' => ['POST'],
                 ],
             ],
         ];
@@ -64,6 +76,7 @@ class TransferController extends Controller
     public function actionCreate()
     {
         $model = new Transfer();
+        $model->state_id = TransferState::AWAITING;
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -75,35 +88,29 @@ class TransferController extends Controller
     }
 
     /**
-     * Updates an existing Transfer model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * Accepts an awaiting Transfer model.
      * @param integer $id
      * @return mixed
      */
-    public function actionUpdate($id)
+    public function actionAccept($id)
     {
         $model = $this->findModel($id);
+        $model->accept();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
-        }
+        return $this->redirect(['view', 'id' => $model->id]);
     }
 
     /**
-     * Deletes an existing Transfer model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * Declined an awaiting Transfer model.
      * @param integer $id
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDecline($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+        $model->decline();
 
-        return $this->redirect(['index']);
+        return $this->redirect(['view', 'id' => $model->id]);
     }
 
     /**

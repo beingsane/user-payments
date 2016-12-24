@@ -15,6 +15,10 @@ use yii\helpers\ArrayHelper;
  */
 class PaymentType extends \yii\db\ActiveRecord
 {
+    /** Payment type ids */
+    const DEBET = 1;
+    const CREDIT = 2;
+
     /**
      * @inheritdoc
      */
