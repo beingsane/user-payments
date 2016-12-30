@@ -9,3 +9,11 @@ modules:
       - Asserts
       - Yii2:
             part: [orm, email]
+      - Db:
+            dsn: 'mysql:host=localhost;dbname=user_payments_test'
+            user: 'root'
+            password: ''
+            dump: 'tests/_data/dump.sql'
+            populate: true
+            cleanup: false
+            reconnect: true
