@@ -150,13 +150,18 @@ class Transfer extends \yii\db\ActiveRecord
 
     /**
      * Returns true if the user is allowed to control this transfer
+     * @param int|null $userId
      * @return bool
      */
-    public function isControlAllowed()
+    public function isControlAllowed($userId = null)
     {
+        if ($userId === null) {
+            $userId = Yii::$app->user->id;
+        }
+
         return ($this->isAwaiting() && (
-               $this->isSendType() && $this->from_user_id == Yii::$app->user->id
-            || $this->isReceiveType() && $this->to_user_id == Yii::$app->user->id
+               $this->isSendType() && $this->from_user_id == $userId
+            || $this->isReceiveType() && $this->to_user_id == $userId
         ));
     }
 
@@ -169,12 +174,12 @@ class Transfer extends \yii\db\ActiveRecord
             return;
         }
 
-        if ($this->type_id == TransferType::SEND) {
+        if ($this->isSendType()) {
             $fromAccount = $this->fromUser->account;
             $toAccount = $this->toUser->account;
             $this->processTransfer($fromAccount, $toAccount, $this->amount);
 
-        } elseif ($this->type_id == TransferType::RECEIVE) {
+        } elseif ($this->isReceiveType()) {
 
             $fromAccount = $this->toUser->account;
             $toAccount = $this->fromUser->account;

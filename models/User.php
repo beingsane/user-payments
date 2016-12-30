@@ -21,6 +21,8 @@ use yii\helpers\ArrayHelper;
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
+ *
+ * @property Account $account
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -210,6 +212,7 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * Creates a new user
      * @param array $data
+     * @return User
      */
     public static function createUser($data)
     {
@@ -242,6 +245,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Tries to find a user,
      * If user does not exists, creates a user and his account
      * @param string $username
+     * @return User
      */
     public static function ensureUserExists($username)
     {
